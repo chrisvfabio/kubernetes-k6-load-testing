@@ -65,6 +65,30 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 ```zsh
 kubectl apply -f manifests/montioring/namespace.yaml
 kubectl apply -R -f manifests/montioring
+
+kubectl create deployment grafana -n monitoring --image=docker.io/grafana/grafana:latest
+kubectl create service clusterip grafana --tcp=3000:3000 -n monitoring
+
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: monitoring
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+EOF
 ```
 
 ## References
@@ -72,3 +96,4 @@ kubectl apply -R -f manifests/montioring
 * [how-to-autoscale-kubernetes-pods-with-keda-testing-with-k6-4nl9](https://dev.to/k6/how-to-autoscale-kubernetes-pods-with-keda-testing-with-k6-4nl9)
 * [setup-prometheus-monitoring-on-kubernetes](https://devopscube.com/setup-prometheus-monitoring-on-kubernetes/)
 * [https://k3d.io/faq/faq/](https://k3d.io/faq/faq/)
+* [https://computingforgeeks.com/install-grafana-on-kubernetes-for-monitoring/](https://computingforgeeks.com/install-grafana-on-kubernetes-for-monitoring/)
